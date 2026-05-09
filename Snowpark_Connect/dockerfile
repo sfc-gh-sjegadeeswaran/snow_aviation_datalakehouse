@@ -1,0 +1,22 @@
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends openjdk-17-jre-headless \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir snowpark-submit==1.21.0
+
+COPY entrypoint.sh .
+COPY pyspark_qar_analytics.py .
+RUN chmod +x entrypoint.sh \
+    && mkdir -p /app/.snowflake \
+    && chown -R nobody:nogroup /app/.snowflake
+
+USER nobody
+
+ENTRYPOINT ["./entrypoint.sh"]
